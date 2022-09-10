@@ -31,4 +31,3 @@ transform_database <- function(query_response) {
 
 df <- transform_database(r) %>%
   dplyr::select(contains('plain_text'))
-
