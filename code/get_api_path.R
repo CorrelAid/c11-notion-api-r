@@ -5,16 +5,16 @@ get_api_path <- function(url) {
   if (stringr::str_detect(url, "\\?v\\=")) {
     path <- fs::path_file(url)
     id <- stringr::str_split(path, "\\?v\\=")[[1]][[1]]
-    return(glue::glue("databases/{id}/query"))
+    return(glue::glue("v1/databases/{id}/query"))
   } else if (stringr::str_detect(url, "\\#")) {
     # is block 
     id <- stringr::str_split(url, "\\#")[[1]][[2]]
-    return(glue::glue("blocks/{id}"))
+    return(glue::glue("v1/blocks/{id}"))
   } else { # page 
     path <- fs::path_file(url)
     parts <- stringr::str_split(path, "\\-") 
     id <- parts[[1]][[length(parts[[1]])]]
-    return(glue::glue("pages/{id}"))
+    return(glue::glue("v1/pages/{id}"))
   }
 }
 

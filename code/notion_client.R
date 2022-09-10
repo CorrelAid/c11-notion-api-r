@@ -153,7 +153,8 @@ NotionClient <- R6::R6Class("NotionClient",
 )
 
 # test
+source(here::here("code/get_api_path.R"))
+url <- get_api_path('https://www.notion.so/TestZ-2e96c943be94470bb076277b8d0c46a6')
 notion <- NotionClient$new()
-res <- notion$get("v1/pages/53d2e67c369243108bd582387ad94057")
+res <- notion$get(url)
 res$parse("UTF-8")
-
