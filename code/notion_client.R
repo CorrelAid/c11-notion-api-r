@@ -66,95 +66,95 @@ read_only_active <- function(private, field, val) {
 #' @importFrom crul HttpClient
 #' @export
 NotionClient <- R6::R6Class("NotionClient",
-                          inherit = crul::HttpClient,
-                          public = list(
-                            
-                            # Public Methods ===========================================================
-                            
-                            #' @description
-                            #' Initialization method for class "NotionClient".
-                            #' @param base_url character. The full base URL of the API.
-                            #' @param notion_token character. The API token. Defaults to requesting
-                            #'  the system environment variable `NOTION_ACCESS_TOKEN`.
-                            initialize = function(base_url = "https://api.notion.com/",
-                                                  notion_token = Sys.getenv("NOTION_ACCESS_TOKEN")) {
-                              checkmate::assert_string(base_url)
-                              checkmate::assert_string(notion_token)
+                            inherit = crul::HttpClient,
+                            public = list(
                               
-                              if (notion_token == "") {
-                                usethis::ui_stop(
-                                  "No valid token detected. Set the notion_token environment
+                              # Public Methods ===========================================================
+                              
+                              #' @description
+                              #' Initialization method for class "NotionClient".
+                              #' @param base_url character. The full base URL of the API.
+                              #' @param notion_token character. The API token. Defaults to requesting
+                              #'  the system environment variable `NOTION_ACCESS_TOKEN`.
+                              initialize = function(base_url = "https://api.notion.com/",
+                                                    notion_token = Sys.getenv("NOTION_ACCESS_TOKEN")) {
+                                checkmate::assert_string(base_url)
+                                checkmate::assert_string(notion_token)
+                                
+                                if (notion_token == "") {
+                                  usethis::ui_stop(
+                                    "No valid token detected. Set the notion_token environment
                     variable or pass the token directly to the function
                     (not recommended)."
+                                  )
+                                }
+                                private$notion_token <- notion_token
+                                private$base_url <- base_url
+                                
+                                super$initialize(
+                                  url = base_url,
+                                  headers = list(
+                                    Authorization = paste0("Bearer ", notion_token),
+                                    `Notion-Version` = "2021-05-13"
+                                    # "content-type" = "application/json"
+                                  )
                                 )
+                              },
+                              #' @description
+                              #' Perform a GET request (with additional checks)
+                              #'
+                              #' @details
+                              #' Extension of the `crul::HttpClient$get()` method that checks
+                              #' the HttpResponse object on status, that it is of type
+                              #' `application/json`, and parses the response text subsequently from
+                              #' JSON to R list representation.
+                              #' @param path character. Path component of the endpoint.
+                              #' @param query list. A named list which is parsed to the query
+                              #'  component. The order is not hierarchical.
+                              #' @param ... crul-options. Additional option arguments, see
+                              #'  [`crul::HttpClient`] for reference
+                              #' @return the server response as a crul::HttpResponse object.
+                              get = function(path, query = list(), ...) {
+                                res <- super$get(
+                                  path = path,
+                                  query = query,
+                                  ...
+                                )
+                                return(res)
+                              },
+                              
+                              #' @description
+                              #' Perform a POST request
+                              #'
+                              #' @details
+                              #' Extension of the `crul::HttpClient$post()` method.
+                              #' @param path character. Path component of the endpoint.
+                              #' @param body R list. A data payload to be sent to the server.
+                              #' @param ... crul-options. Additional option arguments, see
+                              #'  [`crul::HttpClient`] for reference
+                              #' @return Returns an object of class `crul::HttpResponse`.
+                              post = function(path, body, ...) {
+                                checkmate::assert_string(path)
+                                checkmate::assert_list(body)
+                                
+                                #path <- append_slash(path)
+                                res <- super$post(path = path, body = body, ...)
+                                res$raise_for_status()
+                                return(res)
                               }
-                              private$notion_token <- notion_token
-                              private$base_url <- base_url
+                            ), # <end public>
+                            private = list(
                               
-                              super$initialize(
-                                url = base_url,
-                                headers = list(
-                                  Authorization = paste0("Bearer ", notion_token),
-                                  `Notion-Version` = "2021-05-13"
-                                  # "content-type" = "application/json"
-                                )
-                              )
-                            },
-                            #' @description
-                            #' Perform a GET request (with additional checks)
-                            #'
-                            #' @details
-                            #' Extension of the `crul::HttpClient$get()` method that checks
-                            #' the HttpResponse object on status, that it is of type
-                            #' `application/json`, and parses the response text subsequently from
-                            #' JSON to R list representation.
-                            #' @param path character. Path component of the endpoint.
-                            #' @param query list. A named list which is parsed to the query
-                            #'  component. The order is not hierarchical.
-                            #' @param ... crul-options. Additional option arguments, see
-                            #'  [`crul::HttpClient`] for reference
-                            #' @return the server response as a crul::HttpResponse object.
-                            get = function(path, query = list(), ...) {
-                              res <- super$get(
-                                path = path,
-                                query = query,
-                                ...
-                              )
-                              return(res)
-                            },
-                            
-                            #' @description
-                            #' Perform a POST request
-                            #'
-                            #' @details
-                            #' Extension of the `crul::HttpClient$post()` method.
-                            #' @param path character. Path component of the endpoint.
-                            #' @param body R list. A data payload to be sent to the server.
-                            #' @param ... crul-options. Additional option arguments, see
-                            #'  [`crul::HttpClient`] for reference
-                            #' @return Returns an object of class `crul::HttpResponse`.
-                            post = function(path, body, ...) {
-                              checkmate::assert_string(path)
-                              checkmate::assert_list(body)
+                              # Private Fields ===========================================================
                               
-                              #path <- append_slash(path)
-                              res <- super$post(path = path, body = body, ...)
-                              res$raise_for_status()
-                              return(res)
-                            }
-                          ), # <end public>
-                          private = list(
-                            
-                            # Private Fields ===========================================================
-                            
-                            base_url = "", 
-                            notion_token = ""
-                          ) # <end private>
+                              base_url = "", 
+                              notion_token = ""
+                            ) # <end private>
 )
 
 # test
-source(here::here("code/get_api_path.R"))
-url <- get_api_path('https://www.notion.so/TestZ-2e96c943be94470bb076277b8d0c46a6')
-notion <- NotionClient$new()
-res <- notion$get(url)
-res$parse("UTF-8")
+#source(here::here("code/get_api_path.R"))
+#url <- get_api_path('https://www.notion.so/TestZ-2e96c943be94470bb076277b8d0c46a6')
+#notion <- NotionClient$new()
+#res <- notion$get(url)
+#res$parse("UTF-8")
