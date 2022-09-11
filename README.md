@@ -38,4 +38,5 @@ First of all, you also need a Notion workspace and have to be the admin of it. T
 - [ ] check nesting options
 - [ ] edge cases for get_api_path()
 - [ ] plain text vs formatted text
+- [ ] post requests to add content R -> Notion
 
